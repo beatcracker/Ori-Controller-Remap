@@ -36,7 +36,7 @@ public static bool GetButton(string buttonName)
  2. In the bottom right corner click `Download ZIP`
  3. Unpack downloaded ZIP file
  4. Go to the `Ori-Controller-Remap-master` folder
- 5. Open `Ori_Controller_Remap.ini` file in Notepad. This file contains controller button mappings. I've included one for my gamepad (`Cybor Rumble Pad`) and one for you to edit (`Your Controller Name`).
+ 5. Open `Ori_Controller_Remap.ini` file in Notepad. This file contains controller button mappings. I've included one for my gamepad (`Cyborg Rumble Pad`) and one for you to edit (`Your Controller Name`).
  6. Run JoystickTest application
  7. Punch buttons on your controller, note their numbers in JoystickTest, edit ini file accordingly
  8. Replace `Your Controller Name` with any text you like (your controller name, your pet name, your maiden name - it's all up to you).
