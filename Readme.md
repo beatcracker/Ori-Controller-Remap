@@ -66,5 +66,5 @@ Those files are located in the `X:\Ori_Installation_Directory\ori_Data\Managed\`
 If the tool works for you, please, post your `Ori_Controller_Remap.ini` file and controller name to the [Steam Community] or [GitHub issues], so I can update my script with it.
 
 [JoystickTest application]:http://www.planetpointy.co.uk/joystick-test-application
-[Steam Community]:http://steamcommunity.com/app/261570/discussions
+[Steam Community]:http://steamcommunity.com/app/261570/discussions/0/530646080852232829/
 [GitHub issues]:https://github.com/beatcracker/Ori-Controller-Remap/issues
