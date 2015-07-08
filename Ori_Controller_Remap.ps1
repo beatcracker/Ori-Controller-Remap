@@ -572,9 +572,9 @@ function New-GetButtonMethodSource
 			{
 				public static bool GetButton(string buttonName)
 				{
-					// string[] strArray = new string[] {{ "1", "2", "0", "3", "4", "5", "8", "9", "10", "11" }};
+					// string[] strArray = new string[] { "1", "2", "0", "3", "4", "5", "8", "9", "10", "11", "6", "7" };
 					string[] strArray = new string[] {$($NewButtonMappingArray -join ',')};
-					Match match = Regex.Match(buttonName, @"^(Joystick\d{1}Button)(\d{1})$", RegexOptions.Singleline);
+					Match match = Regex.Match(buttonName, @"^(Joystick\d{1}Button)([0-9]|1[0-2])$", RegexOptions.Singleline);
 					if (match.Success)
 					{
 						return Input.GetButton(match.Groups[1].Value + strArray[int.Parse(match.Groups[2].Value)]);
