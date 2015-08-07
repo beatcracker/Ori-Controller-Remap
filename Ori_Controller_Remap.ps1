@@ -594,7 +594,7 @@ function New-GetButtonMethodSource
 			$NewButtonMappingArray[$i] = '"' + ($Custom[$Default[$i]] - $Base) + '"'
 		}
 
-		# Return new GetButton method wwith custom button mapping array
+		# Return new GetButton method with custom button mapping array
 		$GetButtonMethodSource.InvokeReturnAsIs()
 	}
 }
