@@ -78,6 +78,14 @@ public static bool GetButton(string buttonName)
 
 For Windows Vista and below you have to install it from Microsoft website: [Microsoft .NET Framework 3.5 Service Pack 1]
 
+
+**Q:** Script worked for other buttons, but I stil can't use Triggers on my gamepad
+
+**A:** I don't know why it happens, but some users reported that reported that this could be fixed by using [JoyToKey].
+
+* Quote from Steam user [Interceptor]: *Open `JoyToKey` program and hit the `RTrigger` button on your controller, it will light up the corresponding line in `Joy2Key` where you can click this specific button and assign it to `Shift` on your keyboard. So essentially when you're pressing that button on your controller you're holding the shift button on your keyboard (and thus allowing you to grab/slide)*
+
+
 **Q:** Script can't find my Ori installation (`Assembly-CSharp.dll` file)
 
 **A:** Are you running non-Steam version of Ori? Script uses registry keys created by Steam to locate Ori installation folder. If it can't find it, it looks for the required files in the script folder. So you have to copy those files in the script folder:
@@ -88,6 +96,7 @@ For Windows Vista and below you have to install it from Microsoft website: [Micr
  * UnityEngine.dll
 
 Those files are located in the `X:\Ori_Installation_Directory\ori_Data\Managed\`. After the patch, you have to copy and replace `Assembly-CSharp.dll` file back to ther Ori installation folder. Three other files are required to build the patch code, but not modfied.
+
 
 **Q:** Script doesn't work, produces red text and warnings not mentioned above, etc.
 
@@ -103,3 +112,5 @@ If the tool works for you, please, post your `Ori_Controller_Remap.ini` file and
 [Steam Community]:http://steamcommunity.com/app/261570/discussions/0/530646080852232829/
 [GitHub issues]:https://github.com/beatcracker/Ori-Controller-Remap/issues
 [Microsoft .NET Framework 3.5 Service Pack 1]:https://www.microsoft.com/en-us/download/details.aspx?id=22
+[JoyToKey]:http://joytokey.net
+[Interceptor]:https://steamcommunity.com/app/261570/discussions/0/530646080852232829/#c537405286641246722
