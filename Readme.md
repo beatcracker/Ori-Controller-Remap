@@ -81,7 +81,7 @@ For Windows Vista and below you have to install it from Microsoft website: [Micr
 
 **Q:** Script worked for other buttons, but I stil can't use Triggers on my gamepad
 
-**A:** I don't know why it happens, but some users reported that reported that this could be fixed by using [JoyToKey].
+**A:** I don't know why it happens, but some users reported that this could be fixed by using [JoyToKey].
 
 * Quote from Steam user [Interceptor]: *Open `JoyToKey` program and hit the `RTrigger` button on your controller, it will light up the corresponding line in `Joy2Key` where you can click this specific button and assign it to `Shift` on your keyboard. So essentially when you're pressing that button on your controller you're holding the shift button on your keyboard (and thus allowing you to grab/slide)*
 
