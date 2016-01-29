@@ -1,4 +1,4 @@
-﻿###Info
+###Info
 As many of you know it's almost impossible to play Ori with non-XBOX gamepad: all buttons are messed up and Unity's built-in remapper doesn't work properly (you can't rebind jump button). This tool is intended to fix it.
 
 ###How it works
@@ -33,17 +33,18 @@ public static bool GetButton(string buttonName)
 ###How to apply patch
  1. Download [JoystickTest application]
  2. Go to https://github.com/beatcracker/Ori-Controller-Remap
- 2. In the bottom right corner click `Download ZIP`
- 3. Unpack downloaded ZIP file
- 4. Go to the `Ori-Controller-Remap-master` folder
- 5. Open `Ori_Controller_Remap.ini` file in Notepad. This file contains controller button mappings. I've included one for my gamepad (`Cyborg Rumble Pad`) and one for you to edit (`Your Controller Name`).
- 6. Run JoystickTest application
- 7. Punch buttons on your controller, note their numbers in JoystickTest, edit ini file accordingly
- 8. Replace `Your Controller Name` with any text you like (your controller name, your pet name, your maiden name - it's all up to you).
- 9. Save `Ori_Controller_Remap.ini` file
- 10. Double-click `Ori_Controller_Remap.cmd` file, it will launch PowerShell script
- 11. When asked, select configuration you've edited earlier in the ini file
- 12. Press any key and wait for script to patch your Ori with new controller mapping
+ 3. In the bottom right corner click `Download ZIP`
+ 4. [Unblock ZIP file] before unpacking
+ 5. Unpack downloaded ZIP file
+ 6. Go to the `Ori-Controller-Remap-master` folder
+ 7. Open `Ori_Controller_Remap.ini` file in Notepad. This file contains controller button mappings for known controllers (`Cyborg Rumble Pad`, `Logitech Dual Action`, etc.) and one for you to edit (`Your Controller Name`).
+ 8. Run JoystickTest application
+ 9. Punch buttons on your controller, note their numbers in JoystickTest, edit ini file accordingly
+ 10. Replace `Your Controller Name` with any text you like (your controller name, your pet name, your maiden name - it's all up to you).
+ 11. Save `Ori_Controller_Remap.ini` file
+ 12. Double-click `Ori_Controller_Remap.cmd` file, it will launch PowerShell script
+ 13. When asked, select configuration you've edited earlier in the ini file
+ 14. Press any key and wait for script to patch your Ori with new controller mapping
 
 ###How to remove patch
  1. Go to the Ori instalation directory
@@ -52,11 +53,30 @@ public static bool GetButton(string buttonName)
  3. Delete `Assembly-CSharp.dll`
  4. Rename `Assembly-CSharp.dll.bak` to `Assembly-CSharp.dll`
 
-Or
+— Or —
 
  1. Right-click game in library → Properties → Local files → Verify integrity of game cache
  
 ###Troubleshooting
+
+**Q:** I've got a red text message saying: `Compiler executable file csc.exe cannot be found.`
+
+**A:** You have to install .Net Framework 3.5. For Windows 7 and higher you can do this via Windows GUI or command line:
+
+#####Command line
+* Run `cmd.exe` or `PowerShell.exe` as Administrator
+* Copy/Paste text below and press `Enter`:
+* `DISM /Online /Enable-Feature /FeatureName:NetFx3 /All`
+
+#####Windows GUI
+* Press `Windows Logo` + `R` keys on the keyboard.
+* Type `appwiz.cpl` in the `Run` command box and press `ENTER`.
+* In the `Programs and Features` window, click on the link `Turn Windows features on or off`.
+* Check if the `.NET Framework 3.5 (includes .NET 2.0 and 3.0)` option is available in it.
+* If yes, then enable it and then click on `OK`.
+* Follow the on-screen instructions to complete the installation and restart the computer, if prompted.
+
+For Windows Vista and below you have to install it from Microsoft website: [Microsoft .NET Framework 3.5 Service Pack 1]
 
 **Q:** Script can't find my Ori installation (`Assembly-CSharp.dll` file)
 
@@ -69,13 +89,17 @@ Or
 
 Those files are located in the `X:\Ori_Installation_Directory\ori_Data\Managed\`. After the patch, you have to copy and replace `Assembly-CSharp.dll` file back to ther Ori installation folder. Three other files are required to build the patch code, but not modfied.
 
-**Q:** Script doesn't work, produces red text and warnings, etc.
+**Q:** Script doesn't work, produces red text and warnings not mentioned above, etc.
 
 **A:** Run script, right-click window title, select `Edit->Select All`, press `Enter`. This will copy all text on screen. Then post it to the [Steam Community] or [GitHub issues] and I'll try to help you.
+
+
 
 ###Final note
 If the tool works for you, please, post your `Ori_Controller_Remap.ini` file and controller name to the [Steam Community] or [GitHub issues], so I can update my script with it.
 
+[Unblock ZIP file]:https://blogs.msdn.microsoft.com/delay/p/unblockingdownloadedfile/
 [JoystickTest application]:http://www.planetpointy.co.uk/joystick-test-application
 [Steam Community]:http://steamcommunity.com/app/261570/discussions/0/530646080852232829/
 [GitHub issues]:https://github.com/beatcracker/Ori-Controller-Remap/issues
+[Microsoft .NET Framework 3.5 Service Pack 1]:https://www.microsoft.com/en-us/download/details.aspx?id=22
