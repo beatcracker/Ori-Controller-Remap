@@ -1,4 +1,4 @@
-﻿# Dummy param block to allow Verbose switch
+# Dummy param block to allow Verbose switch
 [CmdletBinding()]
 Param()
 
@@ -690,7 +690,7 @@ Join-Path -Path $Cfg.Script.Dir -ChildPath $Cfg.ReflexilAssembly |
 		}
 		catch
 		{
-			Write-Warning "Can''t load $($Cfg.ReflexilAssembly), press any key to exit..."
+			Write-Warning "Can't load $($Cfg.ReflexilAssembly), press any key to exit..."
 			Pause -Message $Cfg.Pause.ExitMsg $Cfg.Pause.FColor
 			Exit
 		}
