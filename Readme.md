@@ -59,9 +59,15 @@ public static bool GetButton(string buttonName)
  
 ###Troubleshooting
 
+**Q:** I've got a red text message saying : `Can't load Mono.Cecil.Reflexil.dll, press any key to exit...`
+
+**A:** [Unblock ZIP file] before unpacking
+
+
 **Q:** I've got a red text message saying: `Compiler executable file csc.exe cannot be found.`
 
 **A:** You have to install .Net Framework 3.5. For Windows 7 and higher you can do this via Windows GUI or command line:
+
 
 #####Command line
 * Run `cmd.exe` or `PowerShell.exe` as Administrator
