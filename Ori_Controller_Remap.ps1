@@ -307,6 +307,44 @@ function Show-Text
 
 <#
 	.Synopsis
+		Menu, where user selects patch mode
+#>
+function Show-PatchModeMenu
+{
+	Param
+	(
+		[Parameter(Mandatory = $true)]
+		[hashtable]$Mode
+	)
+
+	# Create menu from hashtable
+	$Keys = $Mode.GetEnumerator() | ForEach-Object {$_.Key} | Sort-Object
+	$PropertyOrder = @('Number', 'Name', 'Description')
+
+	$i = 0
+	$Menu = $Keys | ForEach-Object {
+		New-Object -TypeName psobject -Property (@{ Number = $i ; Name = $_ ; Description = $Mode[$_]}) |
+			Select-Object -Property $PropertyOrder
+		$i++
+	}
+
+	$Choice = -1
+	Write-Host 'Available patch modes:' -ForegroundColor Yellow
+	$Menu | Format-Table -AutoSize -Property * | Out-String | Write-Host -ForegroundColor Green
+
+	while($Choice -lt 0 -or $Choice -gt $i)
+	{
+		Write-Host 'Select patch mode number: ' -ForegroundColor Yellow -NoNewline
+		$Choice = [int](Read-Host)
+	}
+
+	Write-Host 'Active patch mode:' -ForegroundColor Yellow
+	$Menu[$Choice] | Format-Table -AutoSize -Property * | Out-String | Write-Host -ForegroundColor Green
+	$Menu[$Choice].Name
+}
+
+<#
+	.Synopsis
 		Menu, where user selects custom controller mapping
 #>
 function Show-ControllerMappingMenu
@@ -321,7 +359,7 @@ function Show-ControllerMappingMenu
 	$Keys = $Custom.GetEnumerator() | ForEach-Object {$_.Key} | Sort-Object
 	$PropertyOrder = @(
 		'Number', 'Name',
-		'A', 'B', 'X','Y',
+		'A', 'B', 'X', 'Y',
 		'LTrigger', 'RTrigger',
 		'LShoulder', 'RShoulder',
 		'LStick', 'RStick',
@@ -329,7 +367,7 @@ function Show-ControllerMappingMenu
 	)
 
 	$i = 0
-	$Menu = $Keys | ForEach-Object -Begin {} {
+	$Menu = $Keys | ForEach-Object {
 		New-Object -TypeName psobject -Property (@{Name = $_ ; Number = $i} + $Custom[$_]) |
 			Select-Object -Property $PropertyOrder
 		$i++
@@ -543,62 +581,375 @@ function Get-ClassMember
 	Int. This number will be subtracted from custom button's number.
 	Allows users to store button numbers in ini file that start from 1 (internal mappings start from 0).
 #>
-function New-GetButtonMethodSource
+function New-RawInputGetButtonMethodSource
 {
 	[CmdletBinding()]
 	Param
 	(
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Remap')]
 		[hashtable]$Default,
 
-		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+		[Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Remap')]
 		[hashtable]$Custom,
 
-		[Parameter(ValueFromPipelineByPropertyName = $true)]
-		[int]$Base = 1
+		[Parameter(ValueFromPipelineByPropertyName = $true, ParameterSetName = 'Remap')]
+		[int]$Base = 1,
+
+		[Parameter(Mandatory = $true, ParameterSetName = 'Remap')]
+        [switch]$Remap,
+
+		[Parameter(Mandatory = $true, ParameterSetName = 'Disable')]
+        [switch]$Disable
 	)
 
 	Begin
 	{
-		# Source code for the patched GetButton method
-		$GetButtonMethodSource = {@"
-			using System;
-			using System.Collections.Generic;
-			using System.Text;
-			using System.Text.RegularExpressions;
-			using UnityEngine;
-
-			public class MoonInput
+		# Source code for the GetButton method with remapping
+		$GetButtonMethodSourceRemap = {@"
+			public static bool GetButton(string buttonName)
 			{
-				public static bool GetButton(string buttonName)
+				// string[] strArray = new string[] { "1", "2", "0", "3", "4", "5", "8", "9", "10", "11", "6", "7" };
+				string[] strArray = new string[] {$($NewButtonMappingArray -join ',')};
+				Match match = Regex.Match(buttonName, @"^(Joystick\dButton)([0-9]|1[0-1])$", RegexOptions.Singleline);
+				if (match.Success)
 				{
-					// string[] strArray = new string[] { "1", "2", "0", "3", "4", "5", "8", "9", "10", "11", "6", "7" };
-					string[] strArray = new string[] {$($NewButtonMappingArray -join ',')};
-					Match match = Regex.Match(buttonName, @"^(Joystick\dButton)([0-9]|1[0-1])$", RegexOptions.Singleline);
-					if (match.Success)
-					{
-						return Input.GetButton(match.Groups[1].Value + strArray[int.Parse(match.Groups[2].Value)]);
-					}
-					return Input.GetButton(buttonName);
+					return Input.GetButton(match.Groups[1].Value + strArray[int.Parse(match.Groups[2].Value)]);
 				}
+				return Input.GetButton(buttonName);
 			}
 "@}
+
+		# Source code for the GetButton method that disables RawInput
+        $GetButtonMethodSourceDisable = @'
+            public static bool GetButton(string buttonName)
+            {
+                return false;
+            }
+'@
+
 	}
 
 	Process
 	{
-		# Create array of button mappings
-		$NewButtonMappingArray = New-Object -TypeName string[] -ArgumentList $Default.Count
-		for($i = 0; $i -lt $Default.Count; $i++)
-		{
-			$NewButtonMappingArray[$i] = '"' + ($Custom[$Default[$i]] - $Base) + '"'
-		}
+        if($Remap)
+        {
+		    # Create array of button mappings
+		    $NewButtonMappingArray = New-Object -TypeName string[] -ArgumentList $Default.Count
+		    for($i = 0; $i -lt $Default.Count; $i++)
+		    {
+			    $NewButtonMappingArray[$i] = '"' + ($Custom[$Default[$i]] - $Base) + '"'
+		    }
 
-		# Return new GetButton method with custom button mapping array
-		$GetButtonMethodSource.InvokeReturnAsIs()
+		    # Return new GetButton method with custom button mapping array
+		    $GetButtonMethodSourceRemap.InvokeReturnAsIs()
+        }
+        elseif($Disable)
+        {
+            $GetButtonMethodSourceDisable
+        }
 	}
 }
 
+function New-GameAssemblySource
+{
+    [CmdletBinding()]
+    Param
+    (
+        [Parameter(Mandatory = $true, ValueFromPipeline = $true)]
+        [string]$RawInputGetButtonMethodSource
+    )
+    Begin
+    {
+        $XInputGetButtonMethodSource = {@"
+            #region " Imports "
+            using J2i.Net.XInputWrapper;
+            using System;
+            using System.Collections.Generic;
+            using System.Text;
+            using System.Text.RegularExpressions;
+            using UnityEngine;
+            #endregion
+
+            #region " Referenced assemblies "
+            // - UnityEngine v0.0.0.0
+            // - mscorlib v2.0.5.0
+            // - System.Core v2.0.5.0
+            // - System v2.0.5.0
+            // - SteamworksManaged v1.0.0.0
+            // - J2i.Net.XInputWrapper v1.0.0.0
+            // - Assembly-CSharp-firstpass v0.0.0.0
+            // - Assembly-CSharp v0.0.0.0
+            #endregion
+
+            public class MoonInput
+            {
+                public static float GetAxis(string axisName)
+                {
+                    return default(float);
+                }
+
+                $RawInputGetButtonMethodSource
+            }
+
+            namespace SmartInput
+            {
+                public enum Axis
+                {
+                    LeftStickX,
+                    LeftStickY,
+                    RightStickX,
+                    RightStickY,
+                    DpadX,
+                    DpadY
+                }
+
+                public enum Button
+                {
+                    ButtonA,
+                    ButtonX,
+                    ButtonY,
+                    ButtonB,
+                    LeftTrigger,
+                    RightTrigger,
+                    LeftShoulder,
+                    RightShoulder,
+                    LeftStick,
+                    RightStick,
+                    Select,
+                    Start
+                }
+
+                class XboxControllerInput
+                {
+                    // Limited support!
+                    // You can only reference methods or fields defined in the class (not in ancestors classes)
+                    // Fields and methods stubs are needed for compilation purposes only.
+                    // Reflexil will automaticaly map current type, fields or methods to original references.
+                    public static bool GetButton(Button button, int userIndex = -1)
+                    {
+                        int axisUserIndex = GetAxisUserIndex();
+                        if (userIndex != -1)
+                        {
+                            axisUserIndex = UserIndexToAxisUserIndex(userIndex);
+                        }
+                        int index = AxisIndexToButtonUserIndex(axisUserIndex);
+                        XboxController controller = XboxController.RetrieveController((userIndex != -1) ? userIndex : 0);
+                        switch (button)
+                        {
+                            case Button.ButtonA:
+                                return (controller.IsAPressed || MoonInput.GetButton(m_joystickButton0Map[index]));
+
+                            case Button.ButtonX:
+                                return (controller.IsXPressed || MoonInput.GetButton(m_joystickButton2Map[index]));
+
+                            case Button.ButtonY:
+                                return (controller.IsYPressed || MoonInput.GetButton(m_joystickButton3Map[index]));
+
+                            case Button.ButtonB:
+                                return (controller.IsBPressed || MoonInput.GetButton(m_joystickButton1Map[index]));
+
+                            case Button.LeftTrigger:
+                                {
+                                    bool flag = controller.LeftTrigger > 20;
+                                    bool flag2 = MoonInput.GetAxis(m_joystickAxis9Map[axisUserIndex]) > 0.5f;
+                                    bool flag3 = MoonInput.GetAxis(m_joystickAxis3Map[axisUserIndex]) > 0.5f;
+                                    return ((flag || flag2) || flag3);
+                                }
+                            case Button.RightTrigger:
+                                {
+                                    bool flag4 = controller.RightTrigger > 20;
+                                    bool flag5 = MoonInput.GetAxis(m_joystickAxis10Map[axisUserIndex]) > 0.5f;
+                                    bool flag6 = MoonInput.GetAxis(m_joystickAxis3Map[axisUserIndex]) < -0.5f;
+                                    return ((flag4 || flag5) || flag6);
+                                }
+                            case Button.LeftShoulder:
+                                return (controller.IsLeftShoulderPressed || MoonInput.GetButton(m_joystickButton4Map[index]));
+
+                            case Button.RightShoulder:
+                                return (controller.IsRightShoulderPressed || MoonInput.GetButton(m_joystickButton5Map[index]));
+
+                            case Button.LeftStick:
+                                return (controller.IsLeftStickPressed || MoonInput.GetButton(m_joystickButton8Map[index]));
+
+                            case Button.RightStick:
+                                return (controller.IsRightStickPressed || MoonInput.GetButton(m_joystickButton9Map[index]));
+
+                            case Button.Select:
+                                return (controller.IsBackPressed || MoonInput.GetButton(m_joystickButton6Map[index]));
+
+                            case Button.Start:
+                                return (controller.IsStartPressed || MoonInput.GetButton(m_joystickButton7Map[index]));
+                        }
+                        return false;
+                    }
+
+                    #region " Methods stubs "
+                    // Do not add or update any method. If compilation fails because of a method declaration, comment it
+                    //static XboxControllerInput()
+                    //{
+                    //}
+
+                    //static float ToAxisFloat(int axis)
+                    //{
+                    //    return default(float);
+                    //}
+
+                    //static float GetAxis(Axis axis)
+                    //{
+                    //    return default(float);
+                    //}
+
+                    static int UserIndexToAxisUserIndex(int userIndex)
+                    {
+                        return default(int);
+                    }
+
+                    static int GetAxisUserIndex()
+                    {
+                        return default(int);
+                    }
+
+                    static int AxisIndexToButtonUserIndex(int userIndex)
+                    {
+                        return default(int);
+                    }
+
+                    //static string GetJoystickXAxisYString(int x, int y)
+                    //{
+                    //    return default(string);
+                    //}
+
+                    #endregion
+
+                    #region " Fields stubs "
+                    // Do not add or update any field. If compilation fails because of a field declaration, comment it
+                    static string m_joystick0Axis1;
+                    static string m_joystick0Axis2;
+                    static string m_joystick0Axis3;
+                    static string m_joystick0Axis4;
+                    static string m_joystick0Axis5;
+                    static string m_joystick0Axis6;
+                    static string m_joystick0Axis7;
+                    static string m_joystick0Axis8;
+                    static string m_joystick0Axis9;
+                    static string m_joystick0Axis10;
+                    static string m_joystick1Axis1;
+                    static string m_joystick1Axis2;
+                    static string m_joystick1Axis3;
+                    static string m_joystick1Axis4;
+                    static string m_joystick1Axis5;
+                    static string m_joystick1Axis6;
+                    static string m_joystick1Axis7;
+                    static string m_joystick1Axis8;
+                    static string m_joystick1Axis9;
+                    static string m_joystick1Axis10;
+                    static string m_joystick2Axis1;
+                    static string m_joystick2Axis2;
+                    static string m_joystick2Axis3;
+                    static string m_joystick2Axis4;
+                    static string m_joystick2Axis5;
+                    static string m_joystick2Axis6;
+                    static string m_joystick2Axis7;
+                    static string m_joystick2Axis8;
+                    static string m_joystick2Axis9;
+                    static string m_joystick2Axis10;
+                    static string m_joystick3Axis1;
+                    static string m_joystick3Axis2;
+                    static string m_joystick3Axis3;
+                    static string m_joystick3Axis4;
+                    static string m_joystick3Axis5;
+                    static string m_joystick3Axis6;
+                    static string m_joystick3Axis7;
+                    static string m_joystick3Axis8;
+                    static string m_joystick3Axis9;
+                    static string m_joystick3Axis10;
+                    static string m_joystick4Axis1;
+                    static string m_joystick4Axis2;
+                    static string m_joystick4Axis3;
+                    static string m_joystick4Axis4;
+                    static string m_joystick4Axis5;
+                    static string m_joystick4Axis6;
+                    static string m_joystick4Axis7;
+                    static string m_joystick4Axis8;
+                    static string m_joystick4Axis9;
+                    static string m_joystick4Axis10;
+                    static string m_joystick1Button0;
+                    static string m_joystick1Button1;
+                    static string m_joystick1Button2;
+                    static string m_joystick1Button3;
+                    static string m_joystick1Button4;
+                    static string m_joystick1Button5;
+                    static string m_joystick1Button6;
+                    static string m_joystick1Button7;
+                    static string m_joystick1Button8;
+                    static string m_joystick1Button9;
+                    static string m_joystick1Button10;
+                    static string m_joystick2Button0;
+                    static string m_joystick2Button1;
+                    static string m_joystick2Button2;
+                    static string m_joystick2Button3;
+                    static string m_joystick2Button4;
+                    static string m_joystick2Button5;
+                    static string m_joystick2Button6;
+                    static string m_joystick2Button7;
+                    static string m_joystick2Button8;
+                    static string m_joystick2Button9;
+                    static string m_joystick2Button10;
+                    static string m_joystick3Button0;
+                    static string m_joystick3Button1;
+                    static string m_joystick3Button2;
+                    static string m_joystick3Button3;
+                    static string m_joystick3Button4;
+                    static string m_joystick3Button5;
+                    static string m_joystick3Button6;
+                    static string m_joystick3Button7;
+                    static string m_joystick3Button8;
+                    static string m_joystick3Button9;
+                    static string m_joystick3Button10;
+                    static string m_joystick4Button0;
+                    static string m_joystick4Button1;
+                    static string m_joystick4Button2;
+                    static string m_joystick4Button3;
+                    static string m_joystick4Button4;
+                    static string m_joystick4Button5;
+                    static string m_joystick4Button6;
+                    static string m_joystick4Button7;
+                    static string m_joystick4Button8;
+                    static string m_joystick4Button9;
+                    static string m_joystick4Button10;
+                    static string[] m_joystickAxis1Map;
+                    static string[] m_joystickAxis2Map;
+                    static string[] m_joystickAxis3Map;
+                    static string[] m_joystickAxis4Map;
+                    static string[] m_joystickAxis5Map;
+                    static string[] m_joystickAxis6Map;
+                    static string[] m_joystickAxis7Map;
+                    static string[] m_joystickAxis8Map;
+                    static string[] m_joystickAxis9Map;
+                    static string[] m_joystickAxis10Map;
+                    static string[] m_joystickButton0Map;
+                    static string[] m_joystickButton1Map;
+                    static string[] m_joystickButton2Map;
+                    static string[] m_joystickButton3Map;
+                    static string[] m_joystickButton4Map;
+                    static string[] m_joystickButton5Map;
+                    static string[] m_joystickButton6Map;
+                    static string[] m_joystickButton7Map;
+                    static string[] m_joystickButton8Map;
+                    static string[] m_joystickButton9Map;
+                    #endregion
+
+                }
+            }
+"@
+}
+    }
+    
+    Process
+    {
+        $XInputGetButtonMethodSource.InvokeReturnAsIs()
+    }
+}
 #endregion
 
 
@@ -630,13 +981,25 @@ $Cfg = @{
 		InstallDir = $null
 	}
 	Patch = @{
-		Class = 'MoonInput'
-		Member = 'GetButton'
-		MemberType = 'Methods'
+        CurrentMode = $null
+        AvailableModes = @{
+            Remap = 'Remap controller buttons'
+            Disable = 'Disable RawInput (for use with x360ce)'
+        }
+        Set = @(
+		    @{Class = 'MoonInput'
+		    Member = 'GetButton'
+		    MemberType = 'Methods'}
+            <#
+		    @{Class = 'XboxControllerInput'
+		    Member = 'GetButton'
+		    MemberType = 'Methods'}
+            #>
+        )
 	}
 	Compile = @{
-		ReferencedAssemblies = 'mscorlib.dll', 'System.dll', 'UnityEngine.dll'
-		CompilerVersion = 'v2.0'
+		ReferencedAssemblies = 'mscorlib.dll', 'System.dll', 'UnityEngine.dll', 'J2i.Net.XInputWrapper.dll'
+		CompilerVersion = 'v4.0'
 		CompilerOptions = '/nostdlib'
 	}
 	Script = @{
@@ -666,7 +1029,6 @@ $Cfg = @{
         FColor = 'Yellow'
     }
 	ReflexilAssembly = 'Mono.Cecil.Reflexil.dll'
-
 }
 
 #endregion
@@ -696,21 +1058,28 @@ Join-Path -Path $Cfg.Script.Dir -ChildPath $Cfg.ReflexilAssembly |
 		}
 	}
 
-# Import custom controller mappings
-$Cfg.Mapping.Custom = Get-IniContent -FilePath (
-	Join-Path -Path $Cfg.Script.Dir -ChildPath ([System.IO.Path]::GetFileNameWithoutExtension($Cfg.Script.Name) + '.ini')
-)
-
-if(!$Cfg.Mapping.Custom)
-{
-	Write-Warning -Message 'No custom controller mappings found, exiting!'
-	Pause -Message $Cfg.Pause.ExitMsg $Cfg.Pause.FColor
-	Exit
-}
-
-# Select custom mapping
-$Cfg.Mapping.Custom = Show-ControllerMappingMenu -Custom $Cfg.Mapping.Custom
+# Select patch mode
+$Cfg.Patch.CurrentMode = Show-PatchModeMenu -Mode $Cfg.Patch.AvailableModes
 Pause -Message $Cfg.Pause.Msg $Cfg.Pause.FColor
+
+if($Cfg.Patch.CurrentMode -eq 'Remap')
+{
+    # Import custom controller mappings
+    $Cfg.Mapping.Custom = Get-IniContent -FilePath (
+	    Join-Path -Path $Cfg.Script.Dir -ChildPath ([System.IO.Path]::GetFileNameWithoutExtension($Cfg.Script.Name) + '.ini')
+    )
+
+    if(!$Cfg.Mapping.Custom)
+    {
+	    Write-Warning -Message 'No custom controller mappings found, exiting!'
+	    Pause -Message $Cfg.Pause.ExitMsg $Cfg.Pause.FColor
+	    Exit
+    }
+
+    # Select custom mapping
+    $Cfg.Mapping.Custom = Show-ControllerMappingMenu -Custom $Cfg.Mapping.Custom
+    Pause -Message $Cfg.Pause.Msg $Cfg.Pause.FColor
+}
 
 # Get Ori's install directory (or script directory, of Ori's files are there)
 Write-Host "Searching for '$($Cfg.Game.Assembly)'" -ForegroundColor Cyan
@@ -766,37 +1135,71 @@ Write-Host 'Applying patch...' -ForegroundColor Cyan
 # Import original assembly with Mono.Cecil
 $GameAssemblyDefinition = [Mono.Cecil.Reflexil.AssemblyDefinition]::ReadAssembly($GameAssemblyPath)
 
-# Build assembly with patched GetButton method
-$SplatGBMS = $Cfg.Mapping
+# Build assembly with patched methods
+if($Cfg.Patch.CurrentMode -eq 'Remap')
+{
+    $SplatRIGBMS = $Cfg.Mapping + @{$Cfg.Patch.CurrentMode = $true}
+}
+elseif($Cfg.Patch.CurrentMode -eq 'Disable')
+{
+    $SplatRIGBMS = @{$Cfg.Patch.CurrentMode = $true}
+}
+else
+{
+	Write-Warning 'Unknown patch mode!'
+	Pause -Message $Cfg.Pause.ExitMsg $Cfg.Pause.FColor
+	Exit
+}
 $SplatNAFS = $Cfg.Compile
-$PatchAssemblyPath = New-GetButtonMethodSource @SplatGBMS | New-AssemblyFromSource @SplatNAFS
+$PatchAssemblyPath = New-RawInputGetButtonMethodSource @SplatRIGBMS| New-GameAssemblySource | New-AssemblyFromSource @SplatNAFS
 
 # Import patch assembly with Mono.Cecil
 $PatchAssemblyDefinition = [Mono.Cecil.Reflexil.AssemblyDefinition]::ReadAssembly($PatchAssemblyPath)
 
 if($PatchAssemblyDefinition -and $GameAssemblyDefinition)
 {
-	# Get source\destination method for patch
-	$SplatGCM = $Cfg.Patch
-	$GameMethod = Get-ClassMember @SplatGCM -AssemblyDefinition $GameAssemblyDefinition
-	$PatchMethod = Get-ClassMember @SplatGCM -AssemblyDefinition $PatchAssemblyDefinition
+	    try
+	    {
+	        $Cfg.Patch.Set | ForEach-Object {
+	            # Get source\destination method for patch
+                $SplatGCM = $_
+	            $GameMethod = Get-ClassMember @SplatGCM -AssemblyDefinition $GameAssemblyDefinition
+	            $PatchMethod = Get-ClassMember @SplatGCM -AssemblyDefinition $PatchAssemblyDefinition
 
-	try
-	{
-		# Replace GetButton method in original assembly with patched one, optimze and fix IL
-		[Reflexil.Utils.CecilHelper]::CloneMethodBody($PatchMethod, $GameMethod, $true)
+                [Reflexil.Utils.CecilHelper]::PatchAssemblyNames(
+                    $PatchMethod.Module,
+                    'b77a5c561934e089', (New-Object -TypeName System.Version -ArgumentList @(2, 0, 0, 0)),
+                    '7cec85d7bea7798e', (New-Object -TypeName System.Version -ArgumentList @(2, 0, 5, 0))
+                )
 
-		# Save original assembly with patched GetButton method to disk
-		$GameAssemblyDefinition.Write($GameAssemblyPath)
+		        # Replace method in original assembly with patched one, optimze and fix IL
+		        [Reflexil.Utils.CecilHelper]::CloneMethodBody($PatchMethod, $GameMethod)#, $true)
+                <#
+                    CecilHelper.PatchAssemblyNames(
+                        MethodDefinition.Module,
+                        Compiler.MicrosoftPublicKeyToken, Compiler.MicrosoftVersion,
+                        Compiler.UnitySilverLightPublicKeyToken, Compiler.UnitySilverLightVersion
+                    );
 
-		# All done
-		Write-Host 'Success!' -ForegroundColor Cyan
-	}
-	catch
-	{
-		# Something went wrong...
-		Write-Warning 'Patch failed, see error messages above!'
-	}
+                    [Reflexil.Utils.CecilHelper]::PatchAssemblyNames(
+                        $PatchMethod.Module,
+                        'b77a5c561934e089', (New-Object -TypeName System.Version -ArgumentList @(2, 0, 0, 0)),
+                        '7cec85d7bea7798e', (New-Object -TypeName System.Version -ArgumentList @(2, 0, 5, 0)))
+                #>
+
+            }
+
+		    # Save original assembly with patched method to disk
+		    $GameAssemblyDefinition.Write($GameAssemblyPath)
+
+		    # All done
+		    Write-Host 'Success!' -ForegroundColor Cyan
+	    }
+	    catch
+	    {
+		    # Something went wrong...
+		    Write-Warning 'Patch failed, see error messages above!'
+	    }
 }
 else
 {
