@@ -1,3 +1,7 @@
+Please note that [Ori and the Blind Forest: Definitive Edition](http://store.steampowered.com/app/387290) supports [native controller remapping](http://steamcommunity.com/app/387290/discussions/0/364040166669190939/). Use this tool only if you have original, non-Definitive edtion.
+
+---
+
 ###Info
 As many of you know it's almost impossible to play Ori with non-XBOX gamepad: all buttons are messed up and Unity's built-in remapper doesn't work properly (you can't rebind jump button). This tool is intended to fix it.
 
