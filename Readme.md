@@ -1,4 +1,4 @@
-Please note that [Ori and the Blind Forest: Definitive Edition](http://store.steampowered.com/app/387290) supports [native controller remapping](http://steamcommunity.com/app/387290/discussions/0/364040166669190939/). Use this tool only if you have original, non-Definitive edtion.
+Please note that [Ori and the Blind Forest: Definitive Edition](http://store.steampowered.com/app/387290) supports [native controller remapping](http://steamcommunity.com/app/387290/discussions/0/364040166669190939/). Use this tool only if you have original, non-Definitive edition.
 
 ---
 
