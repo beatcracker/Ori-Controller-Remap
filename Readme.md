@@ -2,13 +2,13 @@ Please note that [Ori and the Blind Forest: Definitive Edition](http://store.ste
 
 ---
 
-###Info
+### Info
 As many of you know it's almost impossible to play Ori with non-XBOX gamepad: all buttons are messed up and Unity's built-in remapper doesn't work properly (you can't rebind jump button). This tool is intended to fix it.
 
-###How it works
+### How it works
 The included PowerShell script will replace a part of the Ori's code contained in the `Assembly-CSharp.dll` file. This new code will query the Unity engine for the remapped buttons, instead of original ones, requested by game.
 
-###Technical details
+### Technical details
 The modfied code is in the `MoonInput.GetButton(string buttonName)` method in the `Assembly-CSharp.dll`.
 
 Original:
@@ -34,7 +34,7 @@ public static bool GetButton(string buttonName)
 }
 ```
 
-###How to apply patch
+### How to apply patch
  1. Download [JoystickTest application]
  2. Go to https://github.com/beatcracker/Ori-Controller-Remap
  3. In the bottom right corner click `Download ZIP`
@@ -50,7 +50,7 @@ public static bool GetButton(string buttonName)
  13. When asked, select configuration you've edited earlier in the ini file
  14. Press any key and wait for script to patch your Ori with new controller mapping
 
-###How to remove patch
+### How to remove patch
  1. Go to the Ori instalation directory
   * Steam: right-click game in library → Properties → Local files → Browse local files
  2. Go to the `ori_Data\Managed` folder
@@ -61,7 +61,7 @@ public static bool GetButton(string buttonName)
 
  1. Right-click game in library → Properties → Local files → Verify integrity of game cache
  
-###Troubleshooting
+### Troubleshooting
 
 **Q:** I've got a red text message saying : `Can't load Mono.Cecil.Reflexil.dll, press any key to exit...`
 
@@ -73,12 +73,12 @@ public static bool GetButton(string buttonName)
 **A:** You have to install .Net Framework 3.5. For Windows 7 and higher you can do this via Windows GUI or command line:
 
 
-#####Command line
+##### Command line
 * Run `cmd.exe` or `PowerShell.exe` as Administrator
 * Copy/Paste text below and press `Enter`:
 * `DISM /Online /Enable-Feature /FeatureName:NetFx3 /All`
 
-#####Windows GUI
+##### Windows GUI
 * Press `Windows Logo` + `R` keys on the keyboard.
 * Type `appwiz.cpl` in the `Run` command box and press `ENTER`.
 * In the `Programs and Features` window, click on the link `Turn Windows features on or off`.
@@ -119,7 +119,7 @@ Those files are located in the `X:\Ori_Installation_Directory\ori_Data\Managed\`
 
 
 
-###Final note
+### Final note
 If the tool works for you, please, post your `Ori_Controller_Remap.ini` file and controller name to the [Steam Community] or [GitHub issues], so I can update my script with it.
 
 [Unblock ZIP file]:https://blogs.msdn.microsoft.com/delay/p/unblockingdownloadedfile/
