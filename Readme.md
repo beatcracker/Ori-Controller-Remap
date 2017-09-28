@@ -52,7 +52,7 @@ public static bool GetButton(string buttonName)
 
 ### How to remove patch
  1. Go to the Ori instalation directory
-  * Steam: right-click game in library → Properties → Local files → Browse local files
+    * Steam: right-click game in library → Properties → Local files → Browse local files
  2. Go to the `ori_Data\Managed` folder
  3. Delete `Assembly-CSharp.dll`
  4. Rename `Assembly-CSharp.dll.bak` to `Assembly-CSharp.dll`
