@@ -63,10 +63,13 @@ public static bool GetButton(string buttonName)
  
 ### Troubleshooting
 
+---
+
 **Q:** I've got a red text message saying : `Can't load Mono.Cecil.Reflexil.dll, press any key to exit...`
 
 **A:** [Unblock ZIP file] before unpacking
 
+---
 
 **Q:** I've got a red text message saying: `Compiler executable file csc.exe cannot be found.`
 
@@ -88,6 +91,7 @@ public static bool GetButton(string buttonName)
 
 For Windows Vista and below you have to install it from Microsoft website: [Microsoft .NET Framework 3.5 Service Pack 1]
 
+---
 
 **Q:** Script worked for other buttons, but I stil can't use Triggers on my gamepad
 
@@ -95,11 +99,13 @@ For Windows Vista and below you have to install it from Microsoft website: [Micr
 
 * Quote from Steam user [Interceptor]: *Open `JoyToKey` program and hit the `RTrigger` button on your controller, it will light up the corresponding line in `Joy2Key` where you can click this specific button and assign it to `Shift` on your keyboard. So essentially when you're pressing that button on your controller you're holding the shift button on your keyboard (and thus allowing you to grab/slide)*
 
+---
 
 **Q:** I've changed input settings in Unity's built-in remapper (held `Shift` while starting Ori), but now I want to reset it to default. How can I do it? There's no option to reset.
 
 **A:** Just delete all keys starting with `__Input` in this registry key: `HKEY_CURRENT_USER\Software\Microsoft Studios\Ori And The Blind Forest`.
 
+---
 
 **Q:** Script can't find my Ori installation (`Assembly-CSharp.dll` file)
 
@@ -112,6 +118,7 @@ For Windows Vista and below you have to install it from Microsoft website: [Micr
 
 Those files are located in the `X:\Ori_Installation_Directory\ori_Data\Managed\`. After the patch, you have to copy and replace `Assembly-CSharp.dll` file back to ther Ori installation folder. Three other files are required to build the patch code, but not modfied.
 
+---
 
 **Q:** Script doesn't work, produces red text and warnings not mentioned above, etc.
 
